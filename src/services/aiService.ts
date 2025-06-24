@@ -266,8 +266,8 @@ export const generateInitialStructure = async (
 // Add retry mechanism with exponential backoff
 const retryWithBackoff = async <T>(
   operation: () => Promise<T>,
-  maxRetries: number = 3,
-  baseDelay: number = 1000
+  maxRetries: number = 4,
+  baseDelay: number = 1500
 ): Promise<T> => {
   let lastError: Error | null = null;
 
@@ -280,11 +280,12 @@ const retryWithBackoff = async <T>(
       lastError = error as Error;
       console.error(`[${new Date().toISOString()}] Retry Attempt ${attempt + 1} failed:`, lastError);
 
-      // Only retry on 503 errors, other transient server errors, or JSON parsing errors
-      const statusCodeMatch = lastError.message.match(/API error: (5\d{2})/);
+      // Retry on 429 (rate limit), 503 errors, other transient server errors, or JSON parsing errors
+      const statusCodeMatch = lastError.message.match(/API error: (\d{3})/);
+      const isRateLimitError = statusCodeMatch && statusCodeMatch[1] === '429';
       const isServerError = statusCodeMatch && ['500', '502', '503', '504'].includes(statusCodeMatch[1]);
       const isJsonError = lastError.message.includes('Invalid JSON response');
-      const shouldRetry = isServerError || isJsonError;
+      const shouldRetry = isRateLimitError || isServerError || isJsonError;
 
       if (!shouldRetry) {
          console.log(`[${new Date().toISOString()}] Error is not retryable (${lastError.message}). Throwing.`);
@@ -296,7 +297,11 @@ const retryWithBackoff = async <T>(
         throw lastError;
       }
 
-      const delay = baseDelay * Math.pow(2, attempt);
+      // Use shorter delay for rate limit errors (429)
+      let delay = baseDelay * Math.pow(2, attempt);
+      if (isRateLimitError) {
+        delay = Math.max(delay, 2000 + (attempt * 1000)); // Progressive delay: 2s, 3s, 4s, 5s, 6s, 7s
+      }
       console.log(`[${new Date().toISOString()}] Retrying after ${delay}ms delay...`);
       await new Promise(resolve => setTimeout(resolve, delay));
     }

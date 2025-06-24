@@ -149,14 +149,7 @@ function App() {
               <h1 className="text-4xl font-bold text-gray-800 mb-4">
                 执笔马良 - AI 交互式小说生成器
               </h1>
-              <div className="bg-white rounded-lg shadow-md p-4 max-w-md mx-auto">
-                <p className="text-sm text-gray-600 mb-2">环境配置状态:</p>
-                <div className="space-y-1 text-xs">
-                  <div>API Key: {import.meta.env.VITE_AI_API_KEY ? '已配置' : '未配置'}</div>
-                  <div>模型名称: {import.meta.env.VITE_AI_CREATIVE_MODEL_NAME || '未设置'}</div>
-                  <div>API端点: {import.meta.env.VITE_AI_CREATIVE_MODEL_ENDPOINT || '未设置'}</div>
-                </div>
-              </div>
+
             </div>
 
             <div className="max-w-6xl mx-auto">
