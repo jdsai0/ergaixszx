@@ -98,6 +98,10 @@ const safeJsonParse = (text: string) => {
   // Normalize curly quotes that occasionally appear in AI output
   cleaned = cleaned.replace(/[“”]/g, '"');
 
+  // Fix common JSON formatting issues
+  // Remove trailing commas before closing braces/brackets
+  cleaned = cleaned.replace(/,(\s*[}\]])/g, '$1');
+
   // Extract the first JSON object if extra text surrounds it
   const firstBrace = cleaned.indexOf('{');
   const lastBrace = cleaned.lastIndexOf('}');
@@ -105,8 +109,22 @@ const safeJsonParse = (text: string) => {
     const jsonSubstring = cleaned.substring(firstBrace, lastBrace + 1);
     try {
       return JSON.parse(jsonSubstring);
-    } catch (_) {
-      // fall through to try full cleaned string below
+    } catch (parseError) {
+      console.warn('Failed to parse extracted JSON substring:', parseError);
+      // Try to fix more issues in the substring
+      let fixedSubstring = jsonSubstring;
+
+      // Remove trailing commas more aggressively
+      fixedSubstring = fixedSubstring.replace(/,(\s*[}\]])/g, '$1');
+
+      // Try to fix missing quotes around keys
+      fixedSubstring = fixedSubstring.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+
+      try {
+        return JSON.parse(fixedSubstring);
+      } catch (_) {
+        // fall through to try full cleaned string below
+      }
     }
   }
 
@@ -115,7 +133,24 @@ const safeJsonParse = (text: string) => {
   } catch (error) {
     console.error('JSON Parse Error:', error);
     console.error('Raw Response:', text);
-    throw new Error(`Invalid JSON response from AI service: ${(error as Error).message}`);
+    console.error('Cleaned Response:', cleaned);
+
+    // Try one more aggressive fix
+    let lastAttempt = cleaned;
+
+    // Remove trailing commas more aggressively
+    lastAttempt = lastAttempt.replace(/,(\s*[}\]])/g, '$1');
+
+    // Try to fix missing quotes around keys
+    lastAttempt = lastAttempt.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
+
+    try {
+      return JSON.parse(lastAttempt);
+    } catch (finalError) {
+      console.error('Final JSON Parse Attempt Failed:', finalError);
+      console.error('Final Attempt String:', lastAttempt);
+      throw new Error(`Invalid JSON response from AI service: ${(error as Error).message}`);
+    }
   }
 };
 
@@ -165,13 +200,13 @@ export const generateInitialStructure = async (
         messages: [
           {
             role: 'system',
-            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。'
+            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
           },
           { role: 'user', content: basePrompt }
         ],
         temperature: modelConfig.temperature,
         max_tokens: 500,
-        response_format: { type: "json_object" }
+        // response_format: { type: "json_object" } // Gemini may not support this parameter
       };
       const requestHeaders = {
         'Content-Type': 'application/json',
@@ -245,9 +280,11 @@ const retryWithBackoff = async <T>(
       lastError = error as Error;
       console.error(`[${new Date().toISOString()}] Retry Attempt ${attempt + 1} failed:`, lastError);
 
-      // Only retry on 503 errors or potentially other transient server errors (e.g., 500, 502, 504)
+      // Only retry on 503 errors, other transient server errors, or JSON parsing errors
       const statusCodeMatch = lastError.message.match(/API error: (5\d{2})/);
-      const shouldRetry = statusCodeMatch && ['500', '502', '503', '504'].includes(statusCodeMatch[1]);
+      const isServerError = statusCodeMatch && ['500', '502', '503', '504'].includes(statusCodeMatch[1]);
+      const isJsonError = lastError.message.includes('Invalid JSON response');
+      const shouldRetry = isServerError || isJsonError;
 
       if (!shouldRetry) {
          console.log(`[${new Date().toISOString()}] Error is not retryable (${lastError.message}). Throwing.`);
@@ -322,7 +359,7 @@ export const generateInitialStoryAndChoices = async (
         messages: [
           {
             role: 'system',
-            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。'
+            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
           },
           { role: 'user', content: prompt }
         ],
@@ -331,7 +368,7 @@ export const generateInitialStoryAndChoices = async (
         top_p: modelConfig.topP,
         frequency_penalty: modelConfig.frequencyPenalty,
         presence_penalty: modelConfig.presencePenalty,
-        response_format: { type: "json_object" }
+        // response_format: { type: "json_object" } // Gemini may not support this parameter
       };
       const requestHeaders = {
         'Content-Type': 'application/json',
@@ -500,7 +537,7 @@ ${currentStructureOutline}\n\n`;
         messages: [
           {
             role: 'system',
-            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。请注意生成的内容不要有```json这种表示markdown的格式表示, 直接返回对象即可.'
+            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。请注意生成的内容不要有```json这种表示markdown的格式表示, 直接返回对象即可。特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
           },
           ...history,
           { role: 'user', content: systemPrompt }
@@ -510,7 +547,7 @@ ${currentStructureOutline}\n\n`;
         top_p: modelConfig.topP,
         frequency_penalty: modelConfig.frequencyPenalty,
         presence_penalty: modelConfig.presencePenalty,
-        response_format: { type: "json_object" }
+        // response_format: { type: "json_object" } // Gemini may not support this parameter
       };
       const requestHeaders = {
         'Content-Type': 'application/json',
