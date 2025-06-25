@@ -147,12 +147,12 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-900 animate-gradient relative overflow-hidden">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 animate-gradient relative overflow-hidden">
       {/* 背景装饰元素 - 在移动端隐藏以提升性能 */}
       <div className="absolute inset-0 overflow-hidden mobile-float-hidden md:block">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-pink-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-40 left-1/2 w-80 h-80 bg-indigo-500 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-float" style={{animationDelay: '4s'}}></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-float"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-float" style={{animationDelay: '2s'}}></div>
+        <div className="absolute top-40 left-1/2 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-float" style={{animationDelay: '4s'}}></div>
       </div>
 
       <div className="relative z-10">
@@ -192,23 +192,23 @@ function App() {
                   >
                     <div className="p-4 md:p-6 h-full flex flex-col">
                       <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
-                        <div className="w-2 md:w-3 h-2 md:h-3 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse"></div>
-                        <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-purple-200 transition-colors">
+                        <div className="w-2 md:w-3 h-2 md:h-3 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full animate-pulse"></div>
+                        <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-blue-200 transition-colors">
                           {style.name}
                         </h3>
                       </div>
 
-                      <p className="text-purple-100 mb-4 md:mb-6 text-sm leading-relaxed flex-grow">
+                      <p className="text-slate-100 mb-4 md:mb-6 text-sm leading-relaxed flex-grow">
                         {style.description}
                       </p>
 
                       <div className="mb-4 md:mb-6">
-                        <p className="text-xs md:text-sm font-semibold text-purple-200 mb-2 md:mb-3 flex items-center gap-1 md:gap-2">
-                          <span className="w-1 h-1 bg-purple-400 rounded-full"></span>
+                        <p className="text-xs md:text-sm font-semibold text-slate-200 mb-2 md:mb-3 flex items-center gap-1 md:gap-2">
+                          <span className="w-1 h-1 bg-blue-400 rounded-full"></span>
                           示例片段
                         </p>
-                        <div className="bg-black/20 rounded-lg p-2 md:p-3 border border-purple-500/20">
-                          <p className="text-xs text-purple-100 italic leading-relaxed line-clamp-3 md:line-clamp-4">
+                        <div className="bg-black/20 rounded-lg p-2 md:p-3 border border-slate-500/20">
+                          <p className="text-xs text-slate-100 italic leading-relaxed line-clamp-3 md:line-clamp-4">
                             {style.sampleText.substring(0, 80)}...
                           </p>
                         </div>
@@ -216,12 +216,12 @@ function App() {
 
                       <button
                         disabled={isLoading}
-                        className="btn-primary w-full group-hover:shadow-lg group-hover:shadow-purple-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed mobile-btn mobile-touch"
+                        className="btn-primary w-full group-hover:shadow-lg group-hover:shadow-blue-500/25 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed mobile-btn mobile-touch"
                       >
                         <span className="relative z-10">
                           {isLoading ? '生成中...' : '选择这个风格'}
                         </span>
-                        <div className="absolute inset-0 bg-gradient-to-r from-purple-600 to-pink-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-blue-600 to-cyan-600 opacity-0 group-hover:opacity-100 transition-opacity duration-300 rounded-xl"></div>
                       </button>
                     </div>
                   </div>
@@ -234,18 +234,18 @@ function App() {
         {currentScreen === 'novel' && selectedStyle && (
           <>
             {/* 固定在顶部的标题栏 */}
-            <div className="fixed top-0 left-0 right-0 glass-effect-dark z-50 border-b border-purple-500/20 backdrop-blur-xl mobile-header">
+            <div className="fixed top-0 left-0 right-0 glass-effect-dark z-50 border-b border-slate-500/20 backdrop-blur-xl mobile-header">
               <div className="max-w-4xl mx-auto px-4 md:px-6 py-3 md:py-4">
                 <div className="flex justify-between items-center">
                   <div className="flex items-center gap-2 md:gap-3">
-                    <div className="w-2 h-2 bg-gradient-to-r from-purple-400 to-pink-400 rounded-full animate-pulse"></div>
+                    <div className="w-2 h-2 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full animate-pulse"></div>
                     <h1 className="text-lg md:text-xl font-bold text-white">
                       {selectedStyle.name} 风格小说
                     </h1>
                   </div>
                   <button
                     onClick={() => setCurrentScreen('style')}
-                    className="px-4 md:px-6 py-2 glass-effect text-purple-200 hover:text-white rounded-lg md:rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-purple-500/25 border border-purple-500/30 hover:border-purple-400/50 mobile-touch text-sm md:text-base"
+                    className="px-4 md:px-6 py-2 glass-effect text-slate-200 hover:text-white rounded-lg md:rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 border border-slate-500/30 hover:border-blue-400/50 mobile-touch text-sm md:text-base"
                   >
                     返回选择
                   </button>
@@ -257,7 +257,7 @@ function App() {
             <div className="max-w-4xl mx-auto pt-20 md:pt-24 px-4 md:px-6 mobile-content mobile-scroll">
               <div className="glass-effect rounded-xl md:rounded-2xl p-4 md:p-8 animate-fade-in-up mobile-reduced-motion">
                 <div className="prose max-w-none mb-6 md:mb-8">
-                  <div className="bg-black/10 backdrop-blur-sm rounded-lg md:rounded-xl p-4 md:p-6 border border-purple-500/20 mobile-story">
+                  <div className="bg-black/10 backdrop-blur-sm rounded-lg md:rounded-xl p-4 md:p-6 border border-slate-500/20 mobile-story">
                     <p className="text-white leading-relaxed whitespace-pre-wrap text-base md:text-lg">
                       {storyContent}
                     </p>
@@ -309,12 +309,12 @@ function App() {
                       {currentChoices.map((choice, index) => (
                         <button
                           key={choice.id}
-                          className="w-full text-left p-4 md:p-6 glass-effect rounded-lg md:rounded-xl transition-all duration-300 border border-purple-500/20 hover:border-purple-400/40 hover:shadow-lg hover:shadow-purple-500/20 hover:-translate-y-1 group animate-fade-in-up mobile-choice mobile-reduced-motion mobile-touch"
+                          className="w-full text-left p-4 md:p-6 glass-effect rounded-lg md:rounded-xl transition-all duration-300 border border-slate-500/20 hover:border-blue-400/40 hover:shadow-lg hover:shadow-blue-500/20 hover:-translate-y-1 group animate-fade-in-up mobile-choice mobile-reduced-motion mobile-touch"
                           style={{animationDelay: `${index * 0.1}s`}}
                           onClick={() => handleChoiceSelected(choice)}
                         >
                           <div className="flex items-center gap-2 md:gap-3">
-                            <div className="w-1 h-1 bg-purple-400 rounded-full group-hover:w-2 group-hover:h-2 transition-all duration-300 flex-shrink-0"></div>
+                            <div className="w-1 h-1 bg-blue-400 rounded-full group-hover:w-2 group-hover:h-2 transition-all duration-300 flex-shrink-0"></div>
                             <span className="text-purple-100 group-hover:text-white transition-colors duration-300 font-medium text-sm md:text-base leading-relaxed">
                               {choice.text}
                             </span>
