@@ -1,11 +1,12 @@
 import React, { useState } from 'react';
-import { NovelStyle, ThinkingHistoryItem, StoryChoice, HistoryItem } from './types';
+import { NovelStyle, ThinkingHistoryItem, StoryChoice, HistoryItem, NovelHistory } from './types';
 import { novelStyles } from './data/novelStyles';
 import { generateInitialStoryAndChoices, generateInitialStructure, continueStoryAndGenerateChoices, handleAiError } from './services/aiService';
 import { useNovelStore } from './store/novelStore';
+import HistoryScreen from './components/HistoryScreen';
 
 function App() {
-  const [currentScreen, setCurrentScreen] = useState<'style' | 'novel'>('style');
+  const [currentScreen, setCurrentScreen] = useState<'style' | 'novel' | 'history'>('style');
   const [selectedStyle, setSelectedStyle] = useState<NovelStyle | null>(null);
   const [storyContent, setStoryContent] = useState<string>('');
   const [currentChoices, setCurrentChoices] = useState<StoryChoice[]>([]);
@@ -15,8 +16,9 @@ function App() {
   const [preferenceThinkingHistory, setPreferenceThinkingHistory] = useState<ThinkingHistoryItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
+  const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
 
-  const { addHistory } = useNovelStore();
+  const { addHistory, updateHistory } = useNovelStore();
   // Debug: Check environment variables
   React.useEffect(() => {
     console.log('Environment Variables Check:');
@@ -31,6 +33,7 @@ function App() {
     setStoryContent('');
     setCurrentChoices([]);
     setHistory([]);
+    setCurrentHistoryId(null);
 
     // 立即跳转到小说界面并显示加载状态
     setCurrentScreen('novel');
@@ -50,8 +53,9 @@ function App() {
       setPreferenceThinkingHistory([]);
 
       // Create new history entry
+      const historyId = crypto.randomUUID();
       const newHistory = {
-        id: crypto.randomUUID(),
+        id: historyId,
         style,
         lastUpdated: Date.now(),
         content: story,
@@ -64,6 +68,7 @@ function App() {
 
       // Add history to the local store
       addHistory(newHistory);
+      setCurrentHistoryId(historyId);
 
       setStoryContent(story);
       setCurrentChoices(choices);
@@ -119,8 +124,11 @@ function App() {
       setHistory(finalHistory);
 
       // 更新思考历史
+      let updatedStructureThinkingHistory = structureThinkingHistory;
+      let updatedPreferenceThinkingHistory = preferenceThinkingHistory;
+
       if (structureThinking) {
-        const updatedStructureThinkingHistory = [...structureThinkingHistory];
+        updatedStructureThinkingHistory = [...structureThinkingHistory];
         updatedStructureThinkingHistory.push({
           position: choiceCount,
           content: structureThinking
@@ -129,12 +137,24 @@ function App() {
       }
 
       if (preferenceThinking) {
-        const updatedPreferenceThinkingHistory = [...preferenceThinkingHistory];
+        updatedPreferenceThinkingHistory = [...preferenceThinkingHistory];
         updatedPreferenceThinkingHistory.push({
           position: choiceCount,
           content: preferenceThinking
         });
         setPreferenceThinkingHistory(updatedPreferenceThinkingHistory);
+      }
+
+      // 更新历史记录
+      if (currentHistoryId && selectedStyle) {
+        updateHistory(currentHistoryId, {
+          content: finalContent,
+          choices,
+          history: finalHistory,
+          structureThinkingHistory: updatedStructureThinkingHistory,
+          preferenceThinkingHistory: updatedPreferenceThinkingHistory,
+          lastUpdated: Date.now()
+        });
       }
 
     } catch (err) {
@@ -146,26 +166,59 @@ function App() {
     }
   };
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 animate-gradient relative overflow-hidden">
-      {/* 背景装饰元素 - 在移动端隐藏以提升性能 */}
-      <div className="absolute inset-0 overflow-hidden mobile-float-hidden md:block">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-float"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-float" style={{animationDelay: '2s'}}></div>
-        <div className="absolute top-40 left-1/2 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-float" style={{animationDelay: '4s'}}></div>
-      </div>
+  const handleLoadHistory = (history: NovelHistory) => {
+    setSelectedStyle(history.style);
+    setStoryContent(history.content);
+    setCurrentChoices(history.choices);
+    setHistory(history.history);
+    setStructureOutline(history.structureOutline || null);
+    setStructureThinkingHistory(history.structureThinkingHistory || []);
+    setPreferenceThinkingHistory(history.preferenceThinkingHistory || []);
+    setCurrentHistoryId(history.id);
+    setCurrentScreen('novel');
+    setError(null);
+  };
 
-      <div className="relative z-10">
+  return (
+    <>
+      {currentScreen === 'history' ? (
+        <HistoryScreen
+          onBackToStyle={() => setCurrentScreen('style')}
+          onLoadHistory={handleLoadHistory}
+        />
+      ) : (
+        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 animate-gradient relative overflow-hidden">
+          {/* 背景装饰元素 - 在移动端隐藏以提升性能 */}
+          <div className="absolute inset-0 overflow-hidden mobile-float-hidden md:block">
+            <div className="absolute -top-40 -right-40 w-80 h-80 bg-blue-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-float"></div>
+            <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-cyan-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-float" style={{animationDelay: '2s'}}></div>
+            <div className="absolute top-40 left-1/2 w-80 h-80 bg-teal-500 rounded-full mix-blend-multiply filter blur-xl opacity-15 animate-float" style={{animationDelay: '4s'}}></div>
+          </div>
+
+          <div className="relative z-10">
         {currentScreen === 'style' && (
           <>
-            <div className="text-center mb-8 md:mb-12 pt-4 md:pt-8 animate-fade-in-up mobile-reduced-motion px-4">
+            <div className="text-center mb-8 md:mb-12 pt-4 md:pt-8 animate-fade-in-up mobile-reduced-motion px-4 relative">
+              {/* 历史记录按钮 - 右上角 */}
+              <div className="absolute top-4 right-4 md:top-8 md:right-8">
+                <button
+                  onClick={() => setCurrentScreen('history')}
+                  className="glass-effect text-slate-200 hover:text-white rounded-lg md:rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 border border-slate-500/30 hover:border-blue-400/50 mobile-touch p-2 md:p-3"
+                  title="查看历史记录"
+                >
+                  <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </button>
+              </div>
+
               <h1 className="text-4xl md:text-5xl lg:text-6xl mobile-title font-bold text-white mb-4 md:mb-6 text-gradient drop-shadow-2xl">
                 执笔马良
               </h1>
-              <p className="text-lg md:text-xl lg:text-2xl mobile-subtitle text-purple-100 mb-3 md:mb-4 font-light">
+              <p className="text-lg md:text-xl lg:text-2xl mobile-subtitle text-slate-100 mb-3 md:mb-4 font-light">
                 AI 交互式小说生成器
               </p>
-              <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-purple-400 to-pink-400 mx-auto rounded-full"></div>
+              <div className="w-16 md:w-24 h-1 bg-gradient-to-r from-blue-400 to-cyan-400 mx-auto rounded-full"></div>
             </div>
 
             <div className="max-w-7xl mx-auto px-4 md:px-6">
@@ -244,7 +297,10 @@ function App() {
                     </h1>
                   </div>
                   <button
-                    onClick={() => setCurrentScreen('style')}
+                    onClick={() => {
+                      setCurrentScreen('style');
+                      setCurrentHistoryId(null);
+                    }}
                     className="px-4 md:px-6 py-2 glass-effect text-slate-200 hover:text-white rounded-lg md:rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 border border-slate-500/30 hover:border-blue-400/50 mobile-touch text-sm md:text-base"
                   >
                     返回选择
@@ -315,7 +371,7 @@ function App() {
                         >
                           <div className="flex items-center gap-2 md:gap-3">
                             <div className="w-1 h-1 bg-blue-400 rounded-full group-hover:w-2 group-hover:h-2 transition-all duration-300 flex-shrink-0"></div>
-                            <span className="text-purple-100 group-hover:text-white transition-colors duration-300 font-medium text-sm md:text-base leading-relaxed">
+                            <span className="text-slate-100 group-hover:text-white transition-colors duration-300 font-medium text-sm md:text-base leading-relaxed">
                               {choice.text}
                             </span>
                           </div>
@@ -328,8 +384,10 @@ function App() {
             </div>
           </>
         )}
-      </div>
-    </div>
+          </div>
+        </div>
+      )}
+    </>
   );
 }
 
