@@ -200,10 +200,13 @@ function App() {
           <>
             <div className="text-center mb-8 md:mb-12 pt-4 md:pt-8 animate-fade-in-up mobile-reduced-motion px-4 relative">
               {/* 历史记录按钮 - 右上角 */}
-              <div className="absolute top-4 right-4 md:top-8 md:right-8">
+              <div className="absolute top-4 right-4 md:top-8 md:right-8 z-50">
                 <button
-                  onClick={() => setCurrentScreen('history')}
-                  className="glass-effect text-slate-200 hover:text-white rounded-lg md:rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 border border-slate-500/30 hover:border-blue-400/50 mobile-touch p-2 md:p-3"
+                  onClick={() => {
+                    console.log('历史记录按钮被点击');
+                    setCurrentScreen('history');
+                  }}
+                  className="glass-effect text-slate-200 hover:text-white rounded-lg md:rounded-xl transition-all duration-300 hover:shadow-lg hover:shadow-blue-500/25 border border-slate-500/30 hover:border-blue-400/50 mobile-touch p-2 md:p-3 relative z-10"
                   title="查看历史记录"
                 >
                   <svg className="w-5 h-5 md:w-6 md:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
