@@ -19,12 +19,13 @@ function App() {
   const [currentHistoryId, setCurrentHistoryId] = useState<string | null>(null);
 
   const { addHistory, updateHistory } = useNovelStore();
-  // Debug: Check environment variables
+  // Debug: Check environment variables (development only)
   React.useEffect(() => {
-    console.log('Environment Variables Check:');
-    console.log('VITE_AI_API_KEY:', import.meta.env.VITE_AI_API_KEY ? 'SET' : 'NOT SET');
-    console.log('VITE_AI_CREATIVE_MODEL_NAME:', import.meta.env.VITE_AI_CREATIVE_MODEL_NAME);
-    console.log('VITE_AI_CREATIVE_MODEL_ENDPOINT:', import.meta.env.VITE_AI_CREATIVE_MODEL_ENDPOINT);
+    if (import.meta.env.DEV) {
+      console.log('Environment Variables Check:');
+      console.log('VITE_AI_API_KEY:', import.meta.env.VITE_AI_API_KEY ? 'SET' : 'NOT SET');
+      console.log('Model configured:', import.meta.env.VITE_AI_CREATIVE_MODEL_NAME ? 'YES' : 'NO');
+    }
   }, []);
 
   const handleStyleSelect = async (style: NovelStyle) => {

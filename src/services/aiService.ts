@@ -285,16 +285,11 @@ export const generateInitialStructure = async (
         max_tokens: 500,
         // response_format: { type: "json_object" } // Gemini may not support this parameter
       };
-      const requestHeaders = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY ? '***MASKED***' : 'MISSING'}` // Mask API Key
-      };
-      console.log(`[${new Date().toISOString()}] AI Request (generateInitialStructure):`);
-      console.log(`  URL: ${modelConfig.endpoint}`);
-      console.log(`  Method: POST`);
-      console.log(`  Headers: ${JSON.stringify(requestHeaders)}`);
-      console.log(`  Body: ${JSON.stringify(requestBody)}`);
-      // --- End Logging ---
+      // --- Development Logging Only ---
+      if (import.meta.env.DEV) {
+        console.log(`[${new Date().toISOString()}] AI Request (generateInitialStructure)`);
+        console.log(`  Status: Sending request...`);
+      }
 
       const response = await fetch(modelConfig.endpoint, {
         method: 'POST',
@@ -317,14 +312,17 @@ export const generateInitialStructure = async (
       }
 
       const data = await response.json();
-      console.log('Raw AI Response Data (Initial Structure):', data);
 
-      if (!data.choices?.[0]?.message?.content) {
-        console.error('Raw AI Response Data (Initial Structure) missing content:', data);
-        throw new Error('AI response structure unexpected or content missing');
+      if (import.meta.env.DEV) {
+        console.log('AI Response received (Initial Structure)');
       }
 
-      console.log('AI Output Content (Initial Structure):', data.choices[0].message.content);
+      if (!data.choices?.[0]?.message?.content) {
+        if (import.meta.env.DEV) {
+          console.error('AI Response missing content:', data);
+        }
+        throw new Error('AI response structure unexpected or content missing');
+      }
 
       const result = safeJsonParse(data.choices[0].message.content);
 
@@ -350,8 +348,10 @@ const retryWithBackoff = async <T>(
 
   for (let attempt = 0; attempt < maxRetries; attempt++) {
     try {
-      // Log attempt number
-      console.log(`[${new Date().toISOString()}] Retry Attempt ${attempt + 1}/${maxRetries}...`);
+      // Log attempt number (development only)
+      if (import.meta.env.DEV) {
+        console.log(`[${new Date().toISOString()}] Retry Attempt ${attempt + 1}/${maxRetries}...`);
+      }
       return await operation();
     } catch (error: unknown) {
       lastError = error as Error;
@@ -452,16 +452,11 @@ export const generateInitialStoryAndChoices = async (
         presence_penalty: modelConfig.presencePenalty,
         // response_format: { type: "json_object" } // Gemini may not support this parameter
       };
-      const requestHeaders = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY ? '***MASKED***' : 'MISSING'}` // Mask API Key
-      };
-      console.log(`[${new Date().toISOString()}] AI Request (generateInitialStoryAndChoices):`);
-      console.log(`  URL: ${modelConfig.endpoint}`);
-      console.log(`  Method: POST`);
-      console.log(`  Headers: ${JSON.stringify(requestHeaders)}`);
-      console.log(`  Body: ${JSON.stringify(requestBody)}`);
-      // --- End Logging ---
+      // --- Development Logging Only ---
+      if (import.meta.env.DEV) {
+        console.log(`[${new Date().toISOString()}] AI Request (generateInitialStoryAndChoices)`);
+        console.log(`  Status: Sending request...`);
+      }
 
       const response = await fetch(modelConfig.endpoint, {
         method: 'POST',
@@ -484,12 +479,17 @@ export const generateInitialStoryAndChoices = async (
       }
 
       const data = await response.json();
-      console.log('Raw AI Response Data (Initial Story):', data);
+
+      if (import.meta.env.DEV) {
+        console.log('AI Response received (Initial Story)');
+      }
+
       if (!data.choices?.[0]?.message?.content) {
-        console.error('Raw AI Response Data (Initial Story) missing content:', data);
+        if (import.meta.env.DEV) {
+          console.error('AI Response missing content:', data);
+        }
         throw new Error('AI response structure unexpected or content missing');
       }
-      console.log('AI Output Content (Initial Story):', data.choices[0].message.content);
 
       const result = safeJsonParse(data.choices[0].message.content) as StoryResponse;
 
@@ -632,16 +632,11 @@ ${currentStructureOutline}\n\n`;
         presence_penalty: modelConfig.presencePenalty,
         // response_format: { type: "json_object" } // Gemini may not support this parameter
       };
-      const requestHeaders = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${API_KEY ? '***MASKED***' : 'MISSING'}` // Mask API Key
-      };
-      console.log(`[${new Date().toISOString()}] AI Request (continueStoryAndGenerateChoices):`);
-      console.log(`  URL: ${modelConfig.endpoint}`);
-      console.log(`  Method: POST`);
-      console.log(`  Headers: ${JSON.stringify(requestHeaders)}`);
-      console.log(`  Body: ${JSON.stringify(requestBody)}`);
-      // --- End Logging ---
+      // --- Development Logging Only ---
+      if (import.meta.env.DEV) {
+        console.log(`[${new Date().toISOString()}] AI Request (continueStoryAndGenerateChoices)`);
+        console.log(`  Status: Sending request...`);
+      }
 
       const response = await fetch(modelConfig.endpoint, {
         method: 'POST',
@@ -664,12 +659,17 @@ ${currentStructureOutline}\n\n`;
       }
 
       const data = await response.json();
-      console.log('Raw AI Response Data (Continuation):', data);
+
+      if (import.meta.env.DEV) {
+        console.log('AI Response received (Continuation)');
+      }
+
       if (!data.choices?.[0]?.message?.content) {
-        console.error('Raw AI Response Data (Continuation) missing content:', data);
+        if (import.meta.env.DEV) {
+          console.error('AI Response missing content:', data);
+        }
         throw new Error('AI response structure unexpected or content missing');
       }
-      console.log('AI Output Content (Continuation):', data.choices[0].message.content);
 
       const result = safeJsonParse(data.choices[0].message.content);
 
