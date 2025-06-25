@@ -27,8 +27,14 @@ function App() {
 
   const handleStyleSelect = async (style: NovelStyle) => {
     setSelectedStyle(style);
-    setIsLoading(true);
     setError(null);
+    setStoryContent('');
+    setCurrentChoices([]);
+    setHistory([]);
+
+    // 立即跳转到小说界面并显示加载状态
+    setCurrentScreen('novel');
+    setIsLoading(true);
 
     try {
       // Generate initial story and structure
@@ -62,10 +68,10 @@ function App() {
       setStoryContent(story);
       setCurrentChoices(choices);
       setHistory([{ role: 'assistant', content: story }]);
-      setCurrentScreen('novel');
     } catch (err) {
       const errorMessage = handleAiError(err as Error);
       setError(errorMessage);
+      // 保持在小说界面显示错误，不返回风格选择界面
     } finally {
       setIsLoading(false);
     }
@@ -191,57 +197,83 @@ function App() {
         )}
 
         {currentScreen === 'novel' && selectedStyle && (
-          <div className="max-w-4xl mx-auto">
-            <div className="bg-white rounded-lg shadow-lg p-6">
-              <div className="flex justify-between items-center mb-6">
-                <h1 className="text-2xl font-bold text-gray-800">
-                  {selectedStyle.name} 风格小说
-                </h1>
-                <button
-                  onClick={() => setCurrentScreen('style')}
-                  className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
-                >
-                  返回选择
-                </button>
-              </div>
-
-              <div className="prose max-w-none mb-6">
-                <div className="bg-gray-50 p-4 rounded-lg">
-                  <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
-                    {storyContent}
-                  </p>
+          <>
+            {/* 固定在顶部的标题栏 */}
+            <div className="fixed top-0 left-0 right-0 bg-white shadow-md z-50 border-b">
+              <div className="max-w-4xl mx-auto px-6 py-4">
+                <div className="flex justify-between items-center">
+                  <h1 className="text-xl font-bold text-gray-800">
+                    {selectedStyle.name} 风格小说
+                  </h1>
+                  <button
+                    onClick={() => setCurrentScreen('style')}
+                    className="px-4 py-2 text-blue-600 hover:bg-blue-50 rounded-md transition-colors"
+                  >
+                    返回选择
+                  </button>
                 </div>
               </div>
-
-              {error && (
-                <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
-                  {error}
-                </div>
-              )}
-
-              {isLoading ? (
-                <div className="text-center py-8">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-                  <p className="mt-2 text-gray-600">故事正在继续...</p>
-                </div>
-              ) : (
-                currentChoices.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="text-lg font-semibold text-gray-800">选择你的行动：</h3>
-                    {currentChoices.map((choice) => (
-                      <button
-                        key={choice.id}
-                        className="w-full text-left p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
-                        onClick={() => handleChoiceSelected(choice)}
-                      >
-                        {choice.text}
-                      </button>
-                    ))}
-                  </div>
-                )
-              )}
             </div>
-          </div>
+
+            {/* 主要内容区域，添加顶部间距以避免被固定标题栏遮挡 */}
+            <div className="max-w-4xl mx-auto pt-20">
+              <div className="bg-white rounded-lg shadow-lg p-6">
+                <div className="prose max-w-none mb-6">
+                  <div className="bg-gray-50 p-4 rounded-lg">
+                    <p className="text-gray-800 leading-relaxed whitespace-pre-wrap">
+                      {storyContent}
+                    </p>
+                  </div>
+                </div>
+
+                {error && (
+                  <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-6">
+                    <div className="flex items-center justify-between">
+                      <span>{error}</span>
+                      {storyContent === '' ? (
+                        <button
+                          onClick={() => handleStyleSelect(selectedStyle!)}
+                          className="ml-4 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
+                          disabled={isLoading}
+                        >
+                          重试
+                        </button>
+                      ) : (
+                        <button
+                          onClick={() => setError(null)}
+                          className="ml-4 px-3 py-1 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm"
+                        >
+                          关闭
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                {isLoading ? (
+                  <div className="text-center py-8">
+                    <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                    <p className="mt-2 text-gray-600">故事正在继续...</p>
+                  </div>
+                ) : (
+                  currentChoices.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-lg font-semibold text-gray-800">选择你的行动：</h3>
+                      {currentChoices.map((choice) => (
+                        <button
+                          key={choice.id}
+                          className="w-full text-left p-4 bg-blue-50 hover:bg-blue-100 rounded-lg transition-colors border border-blue-200"
+                          onClick={() => handleChoiceSelected(choice)}
+                        >
+                          {choice.text}
+                        </button>
+                      ))}
+                    </div>
+                  )
+                )}
+              </div>
+            </div>
+          </>
         )}
       </div>
     </div>
