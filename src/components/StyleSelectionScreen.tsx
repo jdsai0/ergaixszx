@@ -112,7 +112,7 @@ const StyleSelectionScreen: React.FC<StyleSelectionScreenProps> = ({
 
         <h1 className={`text-4xl md:text-5xl font-bold mb-4 ${
           theme === 'dark' ? 'text-white' : 'text-gray-900'
-        }`}>执笔马良</h1>
+        }`}>共笔天下</h1>
         <p className={`text-xl ${
           theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
         } max-w-2xl mx-auto`}>

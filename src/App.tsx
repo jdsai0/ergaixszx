@@ -217,7 +217,7 @@ function App() {
               </div>
 
               <h1 className="text-4xl md:text-5xl lg:text-6xl mobile-title font-bold text-white mb-4 md:mb-6 text-gradient drop-shadow-2xl">
-                执笔马良
+                共笔天下
               </h1>
               <p className="text-lg md:text-xl lg:text-2xl mobile-subtitle text-slate-100 mb-3 md:mb-4 font-light">
                 AI 交互式小说生成器
