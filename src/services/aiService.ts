@@ -96,10 +96,11 @@ const safeJsonParse = (text: string) => {
     .trim();
 
   // Remove non-Chinese characters that might have been accidentally inserted
-  // Keep Chinese characters, ASCII characters, common punctuation, and JSON structure characters
-  cleaned = cleaned.replace(/[^\u4e00-\u9fff\u3400-\u4dbf\u0020-\u007E\u00A0-\u00FF\u3000-\u303F\uFF00-\uFFEF\s]/g, '');
+  // Keep Chinese characters, ASCII characters, common punctuation, Chinese quotes, and JSON structure characters
+  cleaned = cleaned.replace(/[^\u4e00-\u9fff\u3400-\u4dbf\u0020-\u007E\u00A0-\u00FF\u3000-\u303F\uFF00-\uFFEF\u2000-\u206F\s]/g, '');
 
-  // Normalize curly quotes that occasionally appear in AI output
+  // Normalize English curly quotes that occasionally appear in AI output
+  // Keep Chinese quotes (""") for dialogue, only replace English curly quotes
   cleaned = cleaned.replace(/[“”]/g, '"');
 
   // Fix common JSON formatting issues
@@ -586,7 +587,7 @@ ${currentStructureOutline}\n\n`;
 
     basePrompt += `
 **故事续写要求**：
-0.  **语言要求（最重要）**：**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语、泰语等任何外语。所有内容必须100%使用简体中文汉字和中文标点符号。如果需要表达"或者"、"了解"、"探索"等含义，必须使用"或者"、"了解"、"探索"等纯中文词汇，绝不允许夹杂任何外语单词。**
+0.  **语言要求（最重要）**：**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语、泰语等任何外语。所有内容必须100%使用简体中文汉字和中文标点符号。对话内容必须使用中文引号（"对话内容"），绝不使用英文引号。如果需要表达"或者"、"了解"、"探索"等含义，必须使用"或者"、"了解"、"探索"等纯中文词汇，绝不允许夹杂任何外语单词。**
 1.  **高度连贯性**：续写内容**必须**紧密衔接之前的故事情节和用户做出的最新选择。保持人物性格、动机、故事背景和整体基调的一致性。**允许在叙事需要时进行合理的场景切换或时间跳跃，但必须过渡自然，服务于故事整体逻辑，** 绝不允许出现逻辑断裂或与前文矛盾之处。
 2.  **服务故事主线**：续写部分**必须**有效地推动核心情节发展，或深化人物形象，或揭示重要信息。避免无关的旁枝末节或仅仅为了填充字数的无效描写（牢记"故事优先"原则）。
 3.  **保持吸引力 ("好看")**：
