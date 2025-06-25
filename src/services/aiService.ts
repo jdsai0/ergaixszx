@@ -86,6 +86,129 @@ interface StoryResponse {
   choices: StoryChoice[];
 }
 
+// Helper function to clean foreign language characters that might interfere with JSON parsing
+const cleanForeignCharacters = (text: string): string => {
+  // Replace common foreign characters that appear in AI responses with safe equivalents
+  const replacements: { [key: string]: string } = {
+    // Korean characters
+    '최대한': '尽可能',
+    '숨쉬다': '躲藏',
+    // Russian characters
+    'двинуться': '移动',
+    'вырваться': '突破',
+    'использовать': '使用',
+    'максимально': '最大程度地',
+    'спрятаться': '隐藏',
+    'попытаться': '尝试',
+    // English words that commonly appear in AI responses
+    'stay': '停留',
+    'barely': '勉强',
+    'hardly': '几乎不',
+    'suddenly': '突然',
+    'quickly': '快速地',
+    'slowly': '缓慢地',
+    'carefully': '小心地',
+    'quietly': '安静地',
+    'immediately': '立即',
+    'finally': '最终',
+    'perhaps': '也许',
+    'maybe': '可能',
+    'definitely': '肯定地',
+    'probably': '可能',
+    'certainly': '当然',
+    'obviously': '显然',
+    'actually': '实际上',
+    'really': '真的',
+    'truly': '真正地',
+    'exactly': '确切地',
+    'completely': '完全地',
+    'absolutely': '绝对地',
+    'perfectly': '完美地',
+    'entirely': '完全地',
+    'totally': '完全地',
+    'extremely': '极其',
+    'incredibly': '难以置信地',
+    'amazingly': '令人惊讶地',
+    'surprisingly': '令人惊讶地',
+    'unfortunately': '不幸地',
+    'fortunately': '幸运地',
+    'naturally': '自然地',
+    'normally': '通常',
+    'usually': '通常',
+    'generally': '一般来说',
+    'specifically': '具体地',
+    'particularly': '特别地',
+    'especially': '尤其是',
+    'basically': '基本上',
+    'essentially': '本质上',
+    'fundamentally': '根本上',
+    'originally': '最初',
+    'initially': '最初',
+    'eventually': '最终',
+    'ultimately': '最终',
+    'consequently': '因此',
+    'therefore': '因此',
+    'however': '然而',
+    'nevertheless': '然而',
+    'nonetheless': '尽管如此',
+    'meanwhile': '与此同时',
+    'furthermore': '此外',
+    'moreover': '而且',
+    'additionally': '另外',
+    'alternatively': '或者',
+    'otherwise': '否则',
+    'instead': '相反',
+    'rather': '而是',
+    'quite': '相当',
+    'very': '非常',
+    'pretty': '相当',
+    'fairly': '相当',
+    'somewhat': '有些',
+    'slightly': '稍微',
+    'mostly': '主要是',
+    'mainly': '主要是',
+    'primarily': '主要是',
+    'largely': '很大程度上',
+    'partly': '部分地',
+    'partially': '部分地'
+  };
+
+  let cleaned = text;
+
+  // Apply specific replacements first
+  for (const [foreign, chinese] of Object.entries(replacements)) {
+    cleaned = cleaned.replace(new RegExp(foreign, 'gi'), chinese);
+  }
+
+  // Handle standalone English words that might appear in Chinese text
+  // Replace common English words with Chinese equivalents
+  const englishWords = [
+    'stay', 'barely', 'hardly', 'suddenly', 'quickly', 'slowly', 'carefully', 'quietly',
+    'immediately', 'finally', 'perhaps', 'maybe', 'definitely', 'probably', 'certainly',
+    'obviously', 'actually', 'really', 'truly', 'exactly', 'completely', 'absolutely',
+    'perfectly', 'entirely', 'totally', 'extremely', 'incredibly', 'amazingly',
+    'surprisingly', 'unfortunately', 'fortunately', 'naturally', 'normally', 'usually',
+    'generally', 'specifically', 'particularly', 'especially', 'basically', 'essentially',
+    'fundamentally', 'originally', 'initially', 'eventually', 'ultimately', 'consequently',
+    'therefore', 'however', 'nevertheless', 'nonetheless', 'meanwhile', 'furthermore',
+    'moreover', 'additionally', 'alternatively', 'otherwise', 'instead', 'rather',
+    'quite', 'very', 'pretty', 'fairly', 'somewhat', 'slightly', 'mostly', 'mainly',
+    'primarily', 'largely', 'partly', 'partially'
+  ];
+
+  const englishPattern = new RegExp(`\\b(${englishWords.join('|')})\\b`, 'gi');
+  cleaned = cleaned.replace(englishPattern, (match) => {
+    const word = match.toLowerCase();
+    return replacements[word] || match;
+  });
+
+  // Remove any remaining non-standard characters that might break JSON
+  // Keep Chinese characters, ASCII, common punctuation, and whitespace
+  cleaned = cleaned.replace(/[^\u4e00-\u9fff\u3400-\u4dbf\u0020-\u007E\u00A0-\u00FF\u3000-\u303F\uFF00-\uFFEF\u2000-\u206F\s\n\r\t]/g, '');
+
+  return cleaned;
+};
+
 const safeJsonParse = (text: string) => {
   let cleaned = text.trim();
 
@@ -95,9 +218,9 @@ const safeJsonParse = (text: string) => {
     .replace(/\s*```$/i, '')
     .trim();
 
-  // Remove non-Chinese characters that might have been accidentally inserted
-  // Keep Chinese characters, ASCII characters, common punctuation, Chinese quotes, and JSON structure characters
-  cleaned = cleaned.replace(/[^\u4e00-\u9fff\u3400-\u4dbf\u0020-\u007E\u00A0-\u00FF\u3000-\u303F\uFF00-\uFFEF\u2000-\u206F\s]/g, '');
+  // Clean up foreign language characters that might interfere with JSON parsing
+  // Instead of removing them completely, replace them with safe equivalents
+  cleaned = cleanForeignCharacters(cleaned);
 
   // Normalize English curly quotes that occasionally appear in AI output
   // Keep Chinese quotes (""") for dialogue, only replace English curly quotes
@@ -177,7 +300,6 @@ const fixUnescapedQuotes = (jsonString: string): string => {
 
     for (let i = 0; i < jsonString.length; i++) {
       const char = jsonString[i];
-      const prevChar = i > 0 ? jsonString[i - 1] : '';
 
       if (escapeNext) {
         result += char;
@@ -278,7 +400,7 @@ export const generateInitialStructure = async (
         messages: [
           {
             role: 'system',
-            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。** 特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
+            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母(如stay、very、really等)、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"的意思，必须使用"停留"而不是"stay"；如果想表达"非常"的意思，必须使用"非常"而不是"very"。** 特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
           },
           { role: 'user', content: basePrompt }
         ],
@@ -403,7 +525,7 @@ export const generateInitialStoryAndChoices = async (
     
     **内容与风格要求**：
     0.  **语言与格式要求（最重要）**：
-        *   **绝对禁令**：严禁使用任何非中文字符！必须100%使用简体中文汉字和中文标点符号。
+        *   **绝对禁令**：严禁使用任何非中文字符！包括但不限于英文字母(如stay、very、really、suddenly、quickly、carefully等)。必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"，必须使用"停留"而不是"stay"；如果想表达"突然"，必须使用"突然"而不是"suddenly"。
         *   **对话格式**：所有人物对话必须使用中文引号格式："人物说的话"，绝不使用其他引号形式。
     1.  **引人入胜的开篇**：
         *   **制造悬念与冲突**：开篇需迅速建立悬念、引入核心冲突或提出一个引人好奇的问题，抓住读者注意力。
@@ -445,7 +567,7 @@ export const generateInitialStoryAndChoices = async (
         messages: [
           {
             role: 'system',
-            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。对话内容必须使用中文引号："人物说的话"。** 特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
+            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母(如stay、very、really、suddenly等)、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"的意思，必须使用"停留"而不是"stay"；如果想表达"突然"的意思，必须使用"突然"而不是"suddenly"。对话内容必须使用中文引号："人物说的话"。** 特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
           },
           { role: 'user', content: prompt }
         ],
@@ -590,7 +712,7 @@ ${currentStructureOutline}\n\n`;
 
     basePrompt += `
 **故事续写要求**：
-0.  **语言要求（最重要）**：**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语、泰语等任何外语。所有内容必须100%使用简体中文汉字和中文标点符号。对话内容必须使用中文引号（"对话内容"），绝不使用英文引号。如果需要表达"或者"、"了解"、"探索"等含义，必须使用"或者"、"了解"、"探索"等纯中文词汇，绝不允许夹杂任何外语单词。**
+0.  **语言要求（最重要）**：**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母(如stay、very、really、suddenly、quickly、carefully、quietly、immediately、finally等)、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语、泰语等任何外语。所有内容必须100%使用简体中文汉字和中文标点符号。对话内容必须使用中文引号（"对话内容"），绝不使用英文引号。如果需要表达"停留"，必须使用"停留"而不是"stay"；如果需要表达"突然"，必须使用"突然"而不是"suddenly"；如果需要表达"小心地"，必须使用"小心地"而不是"carefully"。绝不允许夹杂任何外语单词。**
 1.  **高度连贯性**：续写内容**必须**紧密衔接之前的故事情节和用户做出的最新选择。保持人物性格、动机、故事背景和整体基调的一致性。**允许在叙事需要时进行合理的场景切换或时间跳跃，但必须过渡自然，服务于故事整体逻辑，** 绝不允许出现逻辑断裂或与前文矛盾之处。
 2.  **服务故事主线**：续写部分**必须**有效地推动核心情节发展，或深化人物形象，或揭示重要信息。避免无关的旁枝末节或仅仅为了填充字数的无效描写（牢记"故事优先"原则）。
 3.  **保持吸引力 ("好看")**：
@@ -625,7 +747,7 @@ ${currentStructureOutline}\n\n`;
         messages: [
           {
             role: 'system',
-            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。请注意生成的内容不要有```json这种表示markdown的格式表示, 直接返回对象即可。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。** 特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
+            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。请注意生成的内容不要有```json这种表示markdown的格式表示, 直接返回对象即可。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母(如stay、very、really、suddenly、quickly等)、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"，必须使用"停留"而不是"stay"；如果想表达"突然"，必须使用"突然"而不是"suddenly"。** 特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
           },
           ...history,
           { role: 'user', content: systemPrompt }
