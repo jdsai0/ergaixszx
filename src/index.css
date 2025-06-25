@@ -202,6 +202,12 @@
     -webkit-tap-highlight-color: transparent;
   }
 
+  /* 容器间距优化 */
+  .container {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+
   /* 玻璃效果在移动端的优化 */
   .glass-effect {
     background: rgba(255, 255, 255, 0.12);
@@ -259,6 +265,16 @@
     grid-template-columns: 1fr !important;
     gap: 1rem !important;
     padding: 0 1rem !important;
+  }
+
+  /* 风格选择页面移动端优化 */
+  .grid {
+    gap: 1rem !important;
+  }
+
+  /* 移动端标题区域优化 */
+  .text-center {
+    margin-bottom: 1.5rem !important;
   }
 
   /* 移动端固定标题栏优化 */
