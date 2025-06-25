@@ -35,8 +35,8 @@ const StyleSelectionScreen: React.FC<StyleSelectionScreenProps> = ({
 
 
   return (
-    <div className="container mx-auto px-4 py-6 md:py-12 max-w-6xl">
-      <div className="text-center mb-6 md:mb-12 relative">
+    <div className="container mx-auto px-4 py-4 md:py-12 max-w-6xl">
+      <div className="text-center mb-4 md:mb-12 relative">
         <div className="absolute right-0 top-0 flex items-center gap-4">
           {/* History Dialog - Always visible now */}
           <Dialog.Root>
@@ -110,10 +110,10 @@ const StyleSelectionScreen: React.FC<StyleSelectionScreenProps> = ({
           <ThemeSwitcher />
         </div>
 
-        <h1 className={`text-3xl md:text-5xl font-bold mb-3 md:mb-4 ${
+        <h1 className={`text-3xl md:text-5xl font-bold mb-2 md:mb-4 ${
           theme === 'dark' ? 'text-white' : 'text-gray-900'
         }`}>共笔天下</h1>
-        <p className={`text-lg md:text-xl ${
+        <p className={`text-base md:text-xl ${
           theme === 'dark' ? 'text-gray-300' : 'text-gray-600'
         } max-w-2xl mx-auto`}>
           选择一种小说风格，开始你的交互式阅读之旅。每个选择都将引领故事走向不同的方向。
@@ -131,7 +131,7 @@ const StyleSelectionScreen: React.FC<StyleSelectionScreenProps> = ({
           <LoadingIndicator text="正在准备您的小说..." />
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6 mt-4 md:mt-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 mt-4 md:mt-8">
           {styles.map((style) => (
             <StyleCard
               key={style.id}
