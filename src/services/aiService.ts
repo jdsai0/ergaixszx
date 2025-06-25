@@ -114,6 +114,9 @@ const safeJsonParse = (text: string) => {
       // Try to fix more issues in the substring
       let fixedSubstring = jsonSubstring;
 
+      // Fix unescaped quotes in string values - this is the main issue
+      fixedSubstring = fixUnescapedQuotes(fixedSubstring);
+
       // Remove trailing commas more aggressively
       fixedSubstring = fixedSubstring.replace(/,(\s*[}\]])/g, '$1');
 
@@ -138,6 +141,9 @@ const safeJsonParse = (text: string) => {
     // Try one more aggressive fix
     let lastAttempt = cleaned;
 
+    // Fix unescaped quotes in string values
+    lastAttempt = fixUnescapedQuotes(lastAttempt);
+
     // Remove trailing commas more aggressively
     lastAttempt = lastAttempt.replace(/,(\s*[}\]])/g, '$1');
 
@@ -145,12 +151,79 @@ const safeJsonParse = (text: string) => {
     lastAttempt = lastAttempt.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
 
     try {
+      console.log('Attempting final parse with fixed quotes:', lastAttempt);
       return JSON.parse(lastAttempt);
     } catch (finalError) {
       console.error('Final JSON Parse Attempt Failed:', finalError);
       console.error('Final Attempt String:', lastAttempt);
       throw new Error(`Invalid JSON response from AI service: ${(error as Error).message}`);
     }
+  }
+};
+
+// Helper function to fix unescaped quotes in JSON string values
+const fixUnescapedQuotes = (jsonString: string): string => {
+  try {
+    // More robust approach: parse character by character to fix quotes in string values
+    let result = '';
+    let inString = false;
+    let escapeNext = false;
+    let stringDelimiter = '';
+
+    for (let i = 0; i < jsonString.length; i++) {
+      const char = jsonString[i];
+      const prevChar = i > 0 ? jsonString[i - 1] : '';
+
+      if (escapeNext) {
+        result += char;
+        escapeNext = false;
+        continue;
+      }
+
+      if (char === '\\') {
+        result += char;
+        escapeNext = true;
+        continue;
+      }
+
+      if (char === '"') {
+        if (!inString) {
+          // Starting a string
+          inString = true;
+          stringDelimiter = '"';
+          result += char;
+        } else if (inString && stringDelimiter === '"') {
+          // Check if this is the end of the string by looking ahead
+          // If the next non-whitespace character is : or , or } or ], it's likely the end
+          let nextNonSpace = '';
+          for (let j = i + 1; j < jsonString.length; j++) {
+            if (!/\s/.test(jsonString[j])) {
+              nextNonSpace = jsonString[j];
+              break;
+            }
+          }
+
+          if (nextNonSpace === ':' || nextNonSpace === ',' || nextNonSpace === '}' || nextNonSpace === ']') {
+            // This is the end of the string
+            inString = false;
+            stringDelimiter = '';
+            result += char;
+          } else {
+            // This is a quote inside the string, escape it
+            result += '\\"';
+          }
+        } else {
+          result += char;
+        }
+      } else {
+        result += char;
+      }
+    }
+
+    return result;
+  } catch (error) {
+    console.warn('Error in fixUnescapedQuotes, returning original:', error);
+    return jsonString;
   }
 };
 

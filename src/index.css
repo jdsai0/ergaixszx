@@ -2,6 +2,7 @@
 @tailwind components;
 @tailwind utilities;
 
+/* 自定义动画 */
 @keyframes slide-in-right {
   from {
     transform: translateX(100%);
@@ -11,6 +12,368 @@
   }
 }
 
+@keyframes fade-in-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* 动画类 */
 .animate-slide-in-right {
   animation: slide-in-right 0.3s ease-out;
+}
+
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out;
+}
+
+.animate-float {
+  animation: float 3s ease-in-out infinite;
+}
+
+.animate-gradient {
+  background-size: 200% 200%;
+  animation: gradient-shift 4s ease infinite;
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.4), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+}
+
+/* 自定义渐变背景 */
+.bg-gradient-cosmic {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-sunset {
+  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+.bg-gradient-ocean {
+  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.bg-gradient-forest {
+  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.bg-gradient-royal {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.bg-gradient-aurora {
+  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+}
+
+/* 玻璃态效果 */
+.glass-effect {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.glass-effect-dark {
+  background: rgba(0, 0, 0, 0.2);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* 卡片悬停效果 */
+.card-hover {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.card-hover:hover {
+  transform: translateY(-8px) scale(1.02);
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+/* 按钮样式 */
+.btn-primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(102, 126, 234, 0.4);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+/* 文字渐变效果 */
+.text-gradient {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+}
+
+/* 文本截断工具类 */
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-4 {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* 移动端优化 */
+@media (max-width: 768px) {
+  /* 基础布局优化 */
+  body {
+    font-size: 16px; /* 防止iOS缩放 */
+    -webkit-text-size-adjust: 100%;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* 玻璃效果在移动端的优化 */
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+  }
+
+  .glass-effect-dark {
+    background: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(6px);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+  }
+
+  /* 移动端标题优化 */
+  .mobile-title {
+    font-size: 2.5rem !important;
+    line-height: 1.2;
+    margin-bottom: 1rem !important;
+  }
+
+  .mobile-subtitle {
+    font-size: 1.1rem !important;
+    margin-bottom: 0.5rem !important;
+  }
+
+  /* 移动端卡片优化 */
+  .mobile-card {
+    margin-bottom: 1rem;
+    padding: 1rem !important;
+    border-radius: 1rem !important;
+  }
+
+  .mobile-card h3 {
+    font-size: 1.2rem !important;
+    margin-bottom: 0.75rem !important;
+  }
+
+  .mobile-card p {
+    font-size: 0.9rem !important;
+    line-height: 1.4;
+    margin-bottom: 1rem !important;
+  }
+
+  /* 移动端按钮优化 */
+  .mobile-btn {
+    padding: 0.875rem 1.5rem !important;
+    font-size: 1rem !important;
+    font-weight: 600;
+    border-radius: 0.75rem !important;
+    min-height: 44px; /* iOS推荐的最小触摸目标 */
+  }
+
+  /* 移动端网格优化 */
+  .mobile-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+    padding: 0 1rem !important;
+  }
+
+  /* 移动端固定标题栏优化 */
+  .mobile-header {
+    padding: 1rem !important;
+    backdrop-filter: blur(10px);
+  }
+
+  .mobile-header h1 {
+    font-size: 1.1rem !important;
+    font-weight: 600;
+  }
+
+  .mobile-header button {
+    padding: 0.5rem 1rem !important;
+    font-size: 0.9rem !important;
+    min-height: 36px;
+  }
+
+  /* 移动端内容区域优化 */
+  .mobile-content {
+    padding: 1rem !important;
+    margin-top: 5rem !important; /* 为固定标题栏留出空间 */
+  }
+
+  .mobile-story {
+    padding: 1.25rem !important;
+    font-size: 1rem !important;
+    line-height: 1.6;
+    border-radius: 1rem !important;
+  }
+
+  /* 移动端选择按钮优化 */
+  .mobile-choice {
+    padding: 1rem !important;
+    margin-bottom: 0.75rem !important;
+    border-radius: 0.75rem !important;
+    font-size: 0.95rem !important;
+    line-height: 1.4;
+    min-height: 44px;
+  }
+
+  /* 移动端错误提示优化 */
+  .mobile-error {
+    padding: 1rem !important;
+    margin: 1rem 0 !important;
+    border-radius: 0.75rem !important;
+    font-size: 0.9rem !important;
+  }
+
+  /* 移动端加载状态优化 */
+  .mobile-loading {
+    padding: 2rem 1rem !important;
+  }
+
+  .mobile-loading .spinner {
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+  }
+
+  .mobile-loading p {
+    font-size: 1rem !important;
+    margin-top: 1rem !important;
+  }
+
+  /* 移动端浮动元素调整 */
+  .mobile-float-hidden {
+    display: none !important;
+  }
+
+  /* 移动端动画优化 */
+  .mobile-reduced-motion {
+    animation-duration: 0.3s !important;
+    transition-duration: 0.2s !important;
+  }
+
+  /* 移动端触摸优化 */
+  .mobile-touch {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: manipulation;
+  }
+
+  /* 移动端滚动优化 */
+  .mobile-scroll {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
+  }
+}
+
+/* 小屏幕手机优化 (iPhone SE等) */
+@media (max-width: 375px) {
+  .mobile-title {
+    font-size: 2rem !important;
+  }
+
+  .mobile-card {
+    padding: 0.875rem !important;
+  }
+
+  .mobile-content {
+    padding: 0.75rem !important;
+  }
+
+  .mobile-story {
+    padding: 1rem !important;
+    font-size: 0.95rem !important;
+  }
+}
+
+/* 深色模式支持 */
+@media (prefers-color-scheme: dark) {
+  .auto-dark {
+    background: rgba(0, 0, 0, 0.2);
+    color: white;
+  }
 }
