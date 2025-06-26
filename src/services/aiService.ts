@@ -1,5 +1,44 @@
 import { HistoryItem, StoryChoice, EnhancedContinuationResponse, ThinkingHistoryItem } from '../types';
 
+// Polyfill for AbortSignal.timeout for older Android browsers
+const createTimeoutSignal = (timeout: number): AbortSignal => {
+  if (typeof AbortSignal.timeout === 'function') {
+    return AbortSignal.timeout(timeout);
+  }
+
+  // Fallback for older browsers
+  const controller = new AbortController();
+  setTimeout(() => controller.abort(), timeout);
+  return controller.signal;
+};
+
+// Enhanced fetch wrapper for better Android browser compatibility
+const enhancedFetch = async (url: string, options: RequestInit): Promise<Response> => {
+  try {
+    // Check network connectivity first
+    if (!navigator.onLine) {
+      throw new Error('网络连接不可用，请检查网络设置');
+    }
+
+    const response = await fetch(url, options);
+    return response;
+  } catch (error: any) {
+    // Handle specific Android browser issues
+    if (error.name === 'AbortError') {
+      throw new Error('请求超时，请检查网络连接或稍后重试');
+    } else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+      throw new Error('网络连接失败，请检查网络设置或稍后重试');
+    } else if (error.message.includes('CORS')) {
+      throw new Error('跨域请求被阻止，请联系开发者');
+    } else if (error.message.includes('SSL') || error.message.includes('certificate')) {
+      throw new Error('安全连接失败，请检查网络设置');
+    }
+
+    // Re-throw the original error if it's not a known issue
+    throw error;
+  }
+};
+
 // Model configurations
 interface ModelConfig {
   name: string;
@@ -414,13 +453,20 @@ export const generateInitialStructure = async (
         console.log(`  Status: Sending request...`);
       }
 
-      const response = await fetch(modelConfig.endpoint, {
+      const response = await enhancedFetch(modelConfig.endpoint, {
         method: 'POST',
-        headers: { // Use original headers for the actual request
+        headers: { // Enhanced headers for better Android browser compatibility
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`
+          'Authorization': `Bearer ${API_KEY}`,
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+          'User-Agent': 'Mozilla/5.0 (compatible; NovelApp/1.0)'
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        // Add timeout and other options for better compatibility
+        signal: createTimeoutSignal(60000), // 60 second timeout
+        mode: 'cors',
+        credentials: 'omit'
       });
 
       if (!response.ok) {
@@ -584,13 +630,20 @@ export const generateInitialStoryAndChoices = async (
         console.log(`  Status: Sending request...`);
       }
 
-      const response = await fetch(modelConfig.endpoint, {
+      const response = await enhancedFetch(modelConfig.endpoint, {
         method: 'POST',
-        headers: { // Use original headers for the actual request
+        headers: { // Enhanced headers for better Android browser compatibility
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`
+          'Authorization': `Bearer ${API_KEY}`,
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+          'User-Agent': 'Mozilla/5.0 (compatible; NovelApp/1.0)'
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        // Add timeout and other options for better compatibility
+        signal: createTimeoutSignal(60000), // 60 second timeout
+        mode: 'cors',
+        credentials: 'omit'
       });
 
       if (!response.ok) {
@@ -765,13 +818,20 @@ ${currentStructureOutline}\n\n`;
         console.log(`  Status: Sending request...`);
       }
 
-      const response = await fetch(modelConfig.endpoint, {
+      const response = await enhancedFetch(modelConfig.endpoint, {
         method: 'POST',
-        headers: { // Use original headers for the actual request
+        headers: { // Enhanced headers for better Android browser compatibility
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${API_KEY}`
+          'Authorization': `Bearer ${API_KEY}`,
+          'Accept': 'application/json',
+          'Cache-Control': 'no-cache',
+          'User-Agent': 'Mozilla/5.0 (compatible; NovelApp/1.0)'
         },
-        body: JSON.stringify(requestBody)
+        body: JSON.stringify(requestBody),
+        // Add timeout and other options for better compatibility
+        signal: createTimeoutSignal(60000), // 60 second timeout
+        mode: 'cors',
+        credentials: 'omit'
       });
 
       if (!response.ok) {
@@ -820,7 +880,21 @@ ${currentStructureOutline}\n\n`;
 export const handleAiError = (error: Error, defaultMessage: string = 'AI服务暂时不可用，请稍后再试'): string => {
   console.error('AI Service Error:', error);
 
-  if (error.message.includes('API error: 429')) {
+  // Network and connectivity errors (common on Android browsers)
+  if (error.message.includes('网络连接不可用')) {
+    return '网络连接不可用，请检查网络设置后重试';
+  } else if (error.message.includes('请求超时')) {
+    return '网络请求超时，请检查网络连接或稍后重试';
+  } else if (error.message.includes('网络连接失败')) {
+    return '网络连接失败，请检查网络设置或稍后重试';
+  } else if (error.message.includes('跨域请求被阻止')) {
+    return '网络请求被阻止，请尝试刷新页面或联系开发者';
+  } else if (error.message.includes('安全连接失败')) {
+    return '安全连接失败，请检查网络设置或尝试使用其他网络';
+  }
+
+  // API specific errors
+  else if (error.message.includes('API error: 429')) {
     return '请求次数过多，请稍后再试';
   } else if (error.message.includes('API error: 503')) {
     return 'AI服务暂时不可用，系统正在尝试重新连接，请稍候...';
@@ -836,6 +910,13 @@ export const handleAiError = (error: Error, defaultMessage: string = 'AI服务�
     return '请求参数错误，请检查输入或联系开发者';
   } else if (error.message.includes('missing required fields')) {
     return 'AI返回的内容格式不完整，请重试';
+  }
+
+  // Browser compatibility errors
+  else if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+    return '网络请求失败，请检查网络连接或刷新页面重试';
+  } else if (error.name === 'AbortError') {
+    return '请求被中断，请重试';
   }
 
   return defaultMessage;

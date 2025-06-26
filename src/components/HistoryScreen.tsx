@@ -112,7 +112,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ onBackToStyle, onLoadHist
                   style={{animationDelay: `${index * 0.1}s`}}
                   onClick={() => onLoadHistory(history)}
                 >
-                  <div className="p-4 md:p-6 h-full flex flex-col">
+                  <div className="p-2 md:p-3 h-full flex flex-col">
                     <div className="flex items-center gap-2 md:gap-3 mb-3 md:mb-4">
                       <div className="w-2 md:w-3 h-2 md:h-3 bg-gradient-to-r from-blue-400 to-cyan-400 rounded-full animate-pulse"></div>
                       <h3 className="text-lg md:text-xl font-bold text-white group-hover:text-blue-200 transition-colors">
@@ -124,7 +124,7 @@ const HistoryScreen: React.FC<HistoryScreenProps> = ({ onBackToStyle, onLoadHist
                       <p className="text-xs md:text-sm text-slate-300 mb-2">
                         {formatDate(history.lastUpdated)}
                       </p>
-                      <div className="bg-black/20 rounded-lg p-2 md:p-3 border border-slate-500/20">
+                      <div className="bg-black/20 rounded-lg p-1.5 md:p-2 border border-slate-500/20">
                         <p className="text-xs text-slate-100 leading-relaxed line-clamp-3 md:line-clamp-4">
                           {getContentPreview(history.content)}
                         </p>

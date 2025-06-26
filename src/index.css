@@ -74,47 +74,38 @@
   animation: shimmer 2s infinite;
 }
 
-/* 自定义渐变背景 */
-.bg-gradient-cosmic {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+/* 温和简洁配色方案 */
+.bg-gradient-warm-dark {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
 }
 
-.bg-gradient-sunset {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+.bg-gradient-soft {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
 }
 
-.bg-gradient-ocean {
-  background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+.bg-gradient-subtle {
+  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
 }
 
-.bg-gradient-forest {
-  background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-}
-
-.bg-gradient-royal {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-
-.bg-gradient-aurora {
-  background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-}
-
-/* 玻璃态效果 */
+/* 温和玻璃态效果 */
 .glass-effect {
-  background: rgba(255, 255, 255, 0.08);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.12);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.1);
 }
 
 .glass-effect-dark {
-  background: rgba(15, 23, 42, 0.3);
-  backdrop-filter: blur(12px);
-  border: 1px solid rgba(148, 163, 184, 0.2);
+  background: rgba(26, 26, 46, 0.6);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: 0 8px 32px rgba(102, 126, 234, 0.2);
 }
 
 /* 卡片悬停效果 */
 .card-hover {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  min-height: 420px; /* 减少卡片最小高度，减少空白区域 */
 }
 
 .card-hover:hover {
@@ -122,9 +113,62 @@
   box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
 }
 
-/* 按钮样式 */
+/* 卡片网格布局优化 */
+.card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 0.25rem;
+  align-items: stretch; /* 确保所有卡片高度一致 */
+}
+
+@media (min-width: 768px) {
+  .card-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .card-grid {
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0.5rem;
+  }
+
+  .card-hover {
+    min-height: 450px; /* 大屏幕上适中高度，减少空白区域 */
+  }
+
+  /* PC端减少整体padding和margin */
+  .text-center {
+    margin-bottom: 1rem !important;
+  }
+
+  /* PC端减少容器内边距 */
+  .glass-effect {
+    padding: 0.8rem !important;
+  }
+
+  /* PC端减少页面顶部和底部间距 */
+  .pt-4 {
+    padding-top: 1rem !important;
+  }
+
+  .pt-8 {
+    padding-top: 1.5rem !important;
+  }
+
+  .mb-8 {
+    margin-bottom: 1.5rem !important;
+  }
+
+  .mb-12 {
+    margin-bottom: 2rem !important;
+  }
+}
+
+/* 温和按钮样式 */
 .btn-primary {
-  background: linear-gradient(135deg, #3b82f6 0%, #1e40af 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
   color: white;
   border: none;
   padding: 12px 24px;
@@ -133,42 +177,122 @@
   transition: all 0.3s ease;
   position: relative;
   overflow: hidden;
+  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
 }
 
 .btn-primary:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(59, 130, 246, 0.4);
+  box-shadow: 0 10px 25px rgba(102, 126, 234, 0.4);
+  background: linear-gradient(135deg, #5a67d8 0%, #6b46c1 100%);
 }
 
 .btn-primary:active {
   transform: translateY(0);
 }
 
-/* 文字渐变效果 */
+/* 错误按钮样式 */
+.btn-error {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 100%);
+  color: white;
+  border: none;
+  padding: 12px 24px;
+  border-radius: 12px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(220, 38, 38, 0.3);
+}
+
+.btn-error:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px rgba(220, 38, 38, 0.4);
+  background: linear-gradient(135deg, #b91c1c 0%, #dc2626 100%);
+}
+
+/* 温和文字渐变效果 */
 .text-gradient {
-  background: linear-gradient(135deg, #60a5fa 0%, #3b82f6 100%);
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #f093fb 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* 滚动条美化 */
+.text-gradient-light {
+  background: linear-gradient(135deg, #a78bfa 0%, #c084fc 50%, #e879f9 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 错误文字渐变 */
+.text-gradient-error {
+  background: linear-gradient(135deg, #dc2626 0%, #ef4444 50%, #f87171 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* 温和滚动条美化 */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(0, 0, 0, 0.1);
+  background: rgba(102, 126, 234, 0.1);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #a78bfa 0%, #c084fc 100%);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #5a6fd8 0%, #6a4190 100%);
+  background: linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%);
+}
+
+/* 示例片段区域滚动条 - 更细更精致 */
+.bg-black\/20::-webkit-scrollbar {
+  width: 4px;
+}
+
+.bg-black\/20::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 2px;
+}
+
+.bg-black\/20::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.4);
+  border-radius: 2px;
+}
+
+.bg-black\/20::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.6);
+}
+
+/* 示例文本样式优化 */
+.sample-text {
+  line-height: 1.35 !important;
+  letter-spacing: 0.01em;
+  margin: 0;
+  padding: 0;
+  white-space: pre-line;
+  word-spacing: normal;
+  display: block;
+}
+
+/* 移动端文本优化 */
+@media (max-width: 768px) {
+  .sample-text {
+    line-height: 1.3 !important;
+    font-size: 0.75rem !important;
+  }
+}
+
+/* 桌面端进一步优化 */
+@media (min-width: 769px) {
+  .sample-text {
+    line-height: 1.4 !important;
+  }
 }
 
 /* 文本截断工具类 */
@@ -193,6 +317,20 @@
   overflow: hidden;
 }
 
+.line-clamp-6 {
+  display: -webkit-box;
+  -webkit-line-clamp: 6;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.line-clamp-8 {
+  display: -webkit-box;
+  -webkit-line-clamp: 8;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 /* 移动端优化 */
 @media (max-width: 768px) {
   /* 基础布局优化 */
@@ -204,8 +342,8 @@
 
   /* 容器间距优化 */
   .container {
-    padding-left: 1rem !important;
-    padding-right: 1rem !important;
+    padding-left: 0.5rem !important;
+    padding-right: 0.5rem !important;
   }
 
   /* 玻璃效果在移动端的优化 */
@@ -230,25 +368,37 @@
 
   .mobile-subtitle {
     font-size: 1.1rem !important;
-    margin-bottom: 0.5rem !important;
+    margin-bottom: 0.25rem !important;
   }
 
   /* 移动端卡片优化 */
   .mobile-card {
-    margin-bottom: 1rem;
-    padding: 1rem !important;
+    margin-bottom: 0.75rem;
+    padding: 0.75rem !important;
     border-radius: 1rem !important;
+    min-height: 480px !important; /* 移动端统一最小高度，为完整示例内容留出空间 */
   }
 
   .mobile-card h3 {
     font-size: 1.2rem !important;
-    margin-bottom: 0.75rem !important;
+    margin-bottom: 0.5rem !important;
   }
 
   .mobile-card p {
     font-size: 0.9rem !important;
-    line-height: 1.4;
-    margin-bottom: 1rem !important;
+    line-height: 1.3;
+    margin-bottom: 0.75rem !important;
+  }
+
+  /* 移动端网格布局优化 */
+  .card-grid {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem !important;
+  }
+
+  /* 移动端示例片段区域优化 */
+  .mobile-card .bg-black\/20 {
+    max-height: 160px !important;
   }
 
   /* 移动端按钮优化 */
@@ -263,8 +413,8 @@
   /* 移动端网格优化 */
   .mobile-grid {
     grid-template-columns: 1fr !important;
-    gap: 1rem !important;
-    padding: 0 1rem !important;
+    gap: 0.5rem !important;
+    padding: 0 0.25rem !important;
   }
 
   /* 风格选择页面移动端优化 */
@@ -317,7 +467,7 @@
 
   /* 移动端内容区域优化 */
   .mobile-content {
-    padding: 1rem !important;
+    padding: 0.5rem !important;
     margin-top: 5rem !important; /* 为固定标题栏留出空间 */
   }
 
@@ -405,6 +555,113 @@
     padding: 1rem !important;
     font-size: 0.95rem !important;
   }
+}
+
+/* 新设计专用动画 */
+@keyframes card-entrance {
+  from {
+    opacity: 0;
+    transform: translateY(30px) scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes icon-bounce {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+@keyframes gradient-flow {
+  0% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 30px rgba(59, 130, 246, 0.5);
+  }
+}
+
+/* 新设计动画类 */
+.animate-card-entrance {
+  animation: card-entrance 0.6s ease-out;
+}
+
+.animate-icon-bounce {
+  animation: icon-bounce 2s ease-in-out infinite;
+}
+
+.animate-gradient-flow {
+  background-size: 200% 200%;
+  animation: gradient-flow 3s ease infinite;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s ease-in-out infinite;
+}
+
+/* 卡片网格动画延迟 */
+.card-delay-1 { animation-delay: 0.1s; }
+.card-delay-2 { animation-delay: 0.2s; }
+.card-delay-3 { animation-delay: 0.3s; }
+.card-delay-4 { animation-delay: 0.4s; }
+.card-delay-5 { animation-delay: 0.5s; }
+.card-delay-6 { animation-delay: 0.6s; }
+.card-delay-7 { animation-delay: 0.7s; }
+.card-delay-8 { animation-delay: 0.8s; }
+
+/* 现代玻璃态效果 */
+.modern-glass {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+}
+
+.modern-glass-dark {
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(148, 163, 184, 0.2);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+/* 现代按钮效果 */
+.modern-btn {
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.modern-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.modern-btn:hover::before {
+  left: 100%;
 }
 
 /* 深色模式支持 */
