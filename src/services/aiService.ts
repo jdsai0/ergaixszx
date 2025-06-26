@@ -243,7 +243,19 @@ const cleanForeignCharacters = (text: string): string => {
 
   // Remove any remaining non-standard characters that might break JSON
   // Keep Chinese characters, ASCII, common punctuation, and whitespace
+  // More aggressive removal of foreign characters
   cleaned = cleaned.replace(/[^\u4e00-\u9fff\u3400-\u4dbf\u0020-\u007E\u00A0-\u00FF\u3000-\u303F\uFF00-\uFFEF\u2000-\u206F\s\n\r\t]/g, '');
+
+  // Additional cleanup for specific problematic characters that might slip through
+  // Remove Thai, Bengali, Russian, and other non-Chinese characters
+  cleaned = cleaned.replace(/[\u0E00-\u0E7F]/g, ''); // Thai
+  cleaned = cleaned.replace(/[\u0980-\u09FF]/g, ''); // Bengali
+  cleaned = cleaned.replace(/[\u0400-\u04FF]/g, ''); // Cyrillic (Russian)
+  cleaned = cleaned.replace(/[\u0590-\u05FF]/g, ''); // Hebrew
+  cleaned = cleaned.replace(/[\u0600-\u06FF]/g, ''); // Arabic
+  cleaned = cleaned.replace(/[\u3040-\u309F]/g, ''); // Hiragana
+  cleaned = cleaned.replace(/[\u30A0-\u30FF]/g, ''); // Katakana
+  cleaned = cleaned.replace(/[\uAC00-\uD7AF]/g, ''); // Korean
 
   return cleaned;
 };
@@ -302,8 +314,8 @@ const safeJsonParse = (text: string) => {
     return JSON.parse(cleaned);
   } catch (error) {
     console.error('JSON Parse Error:', error);
-    console.error('Raw Response:', text);
-    console.error('Cleaned Response:', cleaned);
+    console.error('Raw Response:', text.substring(0, 500) + '...');
+    console.error('Cleaned Response:', cleaned.substring(0, 500) + '...');
 
     // Try one more aggressive fix
     let lastAttempt = cleaned;
@@ -318,11 +330,11 @@ const safeJsonParse = (text: string) => {
     lastAttempt = lastAttempt.replace(/([{,]\s*)([a-zA-Z_][a-zA-Z0-9_]*)\s*:/g, '$1"$2":');
 
     try {
-      console.log('Attempting final parse with fixed quotes:', lastAttempt);
+      console.log('Attempting final parse with fixed quotes');
       return JSON.parse(lastAttempt);
     } catch (finalError) {
       console.error('Final JSON Parse Attempt Failed:', finalError);
-      console.error('Final Attempt String:', lastAttempt);
+      console.error('Final Attempt String (first 500 chars):', lastAttempt.substring(0, 500) + '...');
       throw new Error(`Invalid JSON response from AI service: ${(error as Error).message}`);
     }
   }
@@ -331,23 +343,30 @@ const safeJsonParse = (text: string) => {
 // Helper function to fix unescaped quotes in JSON string values
 const fixUnescapedQuotes = (jsonString: string): string => {
   try {
+    // First, handle Chinese quotes that might interfere with JSON parsing
+    // Replace Chinese quotes with regular quotes, but be careful not to break JSON structure
+    let result = jsonString;
+
+    // Replace Chinese quotes (""") with regular quotes only inside string content
+    // We need to be more careful here to avoid breaking the JSON structure
+    result = result.replace(/"/g, '"').replace(/"/g, '"');
+
     // More robust approach: parse character by character to fix quotes in string values
-    let result = '';
+    let finalResult = '';
     let inString = false;
     let escapeNext = false;
-    let stringDelimiter = '';
 
-    for (let i = 0; i < jsonString.length; i++) {
-      const char = jsonString[i];
+    for (let i = 0; i < result.length; i++) {
+      const char = result[i];
 
       if (escapeNext) {
-        result += char;
+        finalResult += char;
         escapeNext = false;
         continue;
       }
 
       if (char === '\\') {
-        result += char;
+        finalResult += char;
         escapeNext = true;
         continue;
       }
@@ -356,15 +375,14 @@ const fixUnescapedQuotes = (jsonString: string): string => {
         if (!inString) {
           // Starting a string
           inString = true;
-          stringDelimiter = '"';
-          result += char;
-        } else if (inString && stringDelimiter === '"') {
-          // Check if this is the end of the string by looking ahead
-          // If the next non-whitespace character is : or , or } or ], it's likely the end
+          finalResult += char;
+        } else {
+          // We're in a string, check if this is the end
+          // Look ahead to see if this is likely the end of the string
           let nextNonSpace = '';
-          for (let j = i + 1; j < jsonString.length; j++) {
-            if (!/\s/.test(jsonString[j])) {
-              nextNonSpace = jsonString[j];
+          for (let j = i + 1; j < result.length; j++) {
+            if (!/\s/.test(result[j])) {
+              nextNonSpace = result[j];
               break;
             }
           }
@@ -372,21 +390,18 @@ const fixUnescapedQuotes = (jsonString: string): string => {
           if (nextNonSpace === ':' || nextNonSpace === ',' || nextNonSpace === '}' || nextNonSpace === ']') {
             // This is the end of the string
             inString = false;
-            stringDelimiter = '';
-            result += char;
+            finalResult += char;
           } else {
             // This is a quote inside the string, escape it
-            result += '\\"';
+            finalResult += '\\"';
           }
-        } else {
-          result += char;
         }
       } else {
-        result += char;
+        finalResult += char;
       }
     }
 
-    return result;
+    return finalResult;
   } catch (error) {
     console.warn('Error in fixUnescapedQuotes, returning original:', error);
     return jsonString;
@@ -439,7 +454,7 @@ export const generateInitialStructure = async (
         messages: [
           {
             role: 'system',
-            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母(如stay、very、really等)、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"的意思，必须使用"停留"而不是"stay"；如果想表达"非常"的意思，必须使用"非常"而不是"very"。** 特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
+            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母(如stay、very、really等)、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"的意思，必须使用"停留"而不是"stay"；如果想表达"非常"的意思，必须使用"非常"而不是"very"。** 特别注意：1) 所有字符串值必须用英文双引号(")包围，绝不使用中文引号(""") 2) 字符串内容中的对话可以使用中文引号，但必须正确转义 3) 不能有尾随逗号 4) 所有特殊字符必须正确转义 5) JSON对象必须完整且格式正确。'
           },
           { role: 'user', content: basePrompt }
         ],
@@ -566,12 +581,12 @@ export const generateInitialStoryAndChoices = async (
     const basePrompt = `
     **内容生成任务**：
     根据以下「风格提示」和「内容与风格要求」，生成故事开篇和选项，并填充到 JSON 结构的对应字段中, 请注意生成的内容不要有\`\`\`json这种表示markdown的格式表示, 直接返回对象即可。
-    
+
     **风格提示**：${stylePrompt}
-    
+
     **内容与风格要求**：
     0.  **语言与格式要求（最重要）**：
-        *   **绝对禁令**：严禁使用任何非中文字符！包括但不限于英文字母(如stay、very、really、suddenly、quickly、carefully等)。必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"，必须使用"停留"而不是"stay"；如果想表达"突然"，必须使用"突然"而不是"suddenly"。
+        *   **绝对禁令**：严禁使用任何非中文字符！包括但不限于：英文字母(如stay、very、really、suddenly、quickly、carefully等)、泰语字符(如ยัง)、孟加拉语字符(如কয়েক)、俄语字符(如скрыться)、阿拉伯语、日语、韩语等任何外语字符。必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"，必须使用"停留"而不是"stay"；如果想表达"突然"，必须使用"突然"而不是"suddenly"；如果想表达"隐藏"，必须使用"隐藏"而不是"скрыться"。
         *   **对话格式**：所有人物对话必须使用中文引号格式："人物说的话"，绝不使用其他引号形式。
     1.  **引人入胜的开篇**：
         *   **制造悬念与冲突**：开篇需迅速建立悬念、引入核心冲突或提出一个引人好奇的问题，抓住读者注意力。
@@ -613,7 +628,7 @@ export const generateInitialStoryAndChoices = async (
         messages: [
           {
             role: 'system',
-            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母(如stay、very、really、suddenly等)、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"的意思，必须使用"停留"而不是"stay"；如果想表达"突然"的意思，必须使用"突然"而不是"suddenly"。对话内容必须使用中文引号："人物说的话"。** 特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
+            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母(如stay、very、really、suddenly等)、泰语字符(如ยัง)、孟加拉语字符(如কয়েক)、俄语字符(如скрыться)、阿拉伯语、印地语、日语、韩语等任何外语字符。所有内容必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"的意思，必须使用"停留"而不是"stay"；如果想表达"突然"的意思，必须使用"突然"而不是"suddenly"；如果想表达"隐藏"的意思，必须使用"隐藏"而不是"скрыться"。对话内容必须使用中文引号："人物说的话"。** 特别注意：1) 所有字符串值必须用英文双引号(")包围，绝不使用中文引号(""") 2) 字符串内容中的对话可以使用中文引号，但必须正确转义 3) 不能有尾随逗号 4) 所有特殊字符必须正确转义 5) JSON对象必须完整且格式正确。'
           },
           { role: 'user', content: prompt }
         ],
@@ -800,7 +815,7 @@ ${currentStructureOutline}\n\n`;
         messages: [
           {
             role: 'system',
-            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。请注意生成的内容不要有```json这种表示markdown的格式表示, 直接返回对象即可。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母(如stay、very、really、suddenly、quickly等)、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"，必须使用"停留"而不是"stay"；如果想表达"突然"，必须使用"突然"而不是"suddenly"。** 特别注意：1) 所有字符串值必须用双引号包围 2) 不能有尾随逗号 3) 所有特殊字符必须正确转义 4) JSON对象必须完整且格式正确。'
+            content: '你的唯一输出必须是单个、完整且语法绝对正确的 JSON 对象。禁止在 JSON 对象之外添加任何其他内容。请注意生成的内容不要有```json这种表示markdown的格式表示, 直接返回对象即可。**绝对禁令：严禁在任何地方使用非中文字符！包括但不限于：英文字母(如stay、very、really、suddenly、quickly等)、俄语、印地语、阿拉伯语、孟加拉语、日语、韩语等。所有内容必须100%使用简体中文汉字和中文标点符号。如果想表达"停留"，必须使用"停留"而不是"stay"；如果想表达"突然"，必须使用"突然"而不是"suddenly"。** 特别注意：1) 所有字符串值必须用英文双引号(")包围，绝不使用中文引号(""") 2) 字符串内容中的对话可以使用中文引号，但必须正确转义 3) 不能有尾随逗号 4) 所有特殊字符必须正确转义 5) JSON对象必须完整且格式正确。'
           },
           ...history,
           { role: 'user', content: systemPrompt }
